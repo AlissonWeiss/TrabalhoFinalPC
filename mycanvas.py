@@ -2,7 +2,9 @@ from OpenGL.GL import *
 from PyQt5 import QtOpenGL, QtCore
 from PyQt5.QtGui import QMouseEvent
 
+from hetool.compgeom.compgeom import CompGeom
 from hetool.compgeom.tesselation import Tesselation
+from hetool.geometry.point import Point
 from hetool.he.hecontroller import HeController
 from hetool.he.hemodel import HeModel
 from hetool.he.heview import HeView
@@ -25,6 +27,10 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
         self.m_control_points = []
         self.m_temp_curve = []
+
+        self.view_mode = "collector"
+        self.distance_between_points = -1
+        self.mesh_points = []
 
     def initializeGL(self):
         glClearColor(1.0, 1.0, 1.0, 1.0)
@@ -110,6 +116,10 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
     # <editor-fold desc="Mouse events">
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+
+        if self.view_mode != "collector":
+            return
+
         pt = event.pos()
         converted_point = self.convert_point_coordinates_to_universe(pt)
 
@@ -130,7 +140,6 @@ class MyCanvas(QtOpenGL.QGLWidget):
             for pt in curve:
                 he_segment.append(pt[0])
                 he_segment.append(pt[1])
-                print(he_segment)
             self.m_controller.insertSegment(he_segment, 0.01)
             self.update()
         else:
@@ -148,7 +157,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def tessellate_beziers(self):
         patches = self.m_model.getPatches()
         for patch in patches:
-            glColor3f(0.0, 0.9, 0.0)
+            glColor3f(0.0, 0.6, 0.0)
 
             triangles = Tesselation.tessellate(patch.getPoints())
             for triangle in triangles:
@@ -221,5 +230,36 @@ class MyCanvas(QtOpenGL.QGLWidget):
         bezier_y = (1 - t) ** 2 * self.m_control_points[0][1] + 2 * (1 - t) * t * y + t ** 2 * self.m_control_points[1][1]
 
         return bezier_x, bezier_y
+
+    # </editor-fold>
+
+    # <editor-fold desc="Mesh points">
+
+    def draw_mesh_points(self, distance_between_points: int):
+        self.distance_between_points = distance_between_points
+
+        self.mesh_points = self._calculate_mesh_points()
+        print(len(self.mesh_points))
+
+    def _calculate_mesh_points(self) -> list[Point]:
+        points = []
+        x_min, x_max, y_min, y_max = self.m_view.getBoundBox()
+
+        x_qty = int((x_max - x_min) / self.distance_between_points)
+        y_qty = int((y_max - y_min) / self.distance_between_points)
+
+        for i in range(x_qty):
+            for j in range(y_qty):
+                x_pos = x_min + self.distance_between_points * i
+                y_pos = y_min + self.distance_between_points * j
+                point = Point(x_pos, y_pos)
+
+                if CompGeom.isPointInPolygon(self.m_model.getPoints(), point):
+                    points.append(point)
+
+        return points
+
+    def alternate_view(self, view_mode):
+        self.view_mode = view_mode
 
     # </editor-fold>

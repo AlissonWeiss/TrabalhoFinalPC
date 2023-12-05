@@ -40,6 +40,21 @@ class MyWindow(QMainWindow):
         menu_bar.addMenu(tools_menu)
         self.setMenuBar(menu_bar)
 
+        toolbar = self.addToolBar("Toolbar")
+        mesh = QAction("&View points", self)
+        mesh.setCheckable(True)
+        toolbar.addAction(mesh)
+
+        toolbar.actionTriggered[QAction].connect(self.on_toolbar_click)
+
+    def on_toolbar_click(self, action):
+
+        if action.text() == "&View points":
+            if action.isChecked():
+                self.canvas.alternate_view("mesh_points")
+            else:
+                self.canvas.alternate_view("collector")
+
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()
 
@@ -47,7 +62,7 @@ class MyWindow(QMainWindow):
         value, ok = QInputDialog.getInt(self, 'Espaçamento entre pontos',
                                         'Informe o espaçamento entre os pontos da malha: ')
         if ok:
-            print(value)
+            self.canvas.draw_mesh_points(value)
 
     def export_json_data_event(self):
         mesh_points_distance, ok = QInputDialog.getInt(self, 'Espaçamento entre pontos',
