@@ -88,10 +88,14 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT)
 
-        self.tessellate_beziers()
-        self.draw_bezier_segments()
-        self.draw_bezier_points()
-        self.draw_bezier_temp_curve()
+        if self.view_mode == "collector":
+            self.tessellate_beziers()
+            self.draw_bezier_segments()
+            self.draw_bezier_points()
+            self.draw_bezier_temp_curve()
+        if self.view_mode == "mesh_points":
+            self.draw_mesh_points()
+        self.update()
 
     def clear_draws(self):
         print("Clear")
@@ -157,7 +161,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def tessellate_beziers(self):
         patches = self.m_model.getPatches()
         for patch in patches:
-            glColor3f(0.0, 0.6, 0.0)
+            glColor3f(0.0, 0.8, 0.0)
 
             triangles = Tesselation.tessellate(patch.getPoints())
             for triangle in triangles:
@@ -235,14 +239,20 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
     # <editor-fold desc="Mesh points">
 
-    def draw_mesh_points(self, distance_between_points: int):
+    def draw_mesh_points(self):
+        glColor4f(0.0, 1.0, 0.0, 1.0)
+        # glColor3f(1.0, 0.0, 0.0)
+        glPointSize(3)
+        glBegin(GL_POINTS)
+
+        for point in self.mesh_points:
+            glVertex2f(point.getX(), point.getY())
+        glEnd()
+        self.update()
+
+    def calculate_mesh_points(self, distance_between_points: int):
         self.distance_between_points = distance_between_points
-
-        self.mesh_points = self._calculate_mesh_points()
-        print(len(self.mesh_points))
-
-    def _calculate_mesh_points(self) -> list[Point]:
-        points = []
+        self.mesh_points = []
         x_min, x_max, y_min, y_max = self.m_view.getBoundBox()
 
         x_qty = int((x_max - x_min) / self.distance_between_points)
@@ -255,11 +265,13 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 point = Point(x_pos, y_pos)
 
                 if CompGeom.isPointInPolygon(self.m_model.getPoints(), point):
-                    points.append(point)
-
-        return points
+                    self.mesh_points.append(point)
 
     def alternate_view(self, view_mode):
         self.view_mode = view_mode
+        self.on_view_mode_updated()
+
+    def on_view_mode_updated(self):
+        self.update()
 
     # </editor-fold>

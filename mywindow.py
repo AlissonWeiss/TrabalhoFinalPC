@@ -26,8 +26,8 @@ class MyWindow(QMainWindow):
         self.reset_action = QAction("&Reset all drawings ", self)
         self.reset_action.triggered.connect(self.clear_all_drawings_event)
 
-        self.tesselation_mesh = QAction("&View tessellation mesh", self)
-        self.tesselation_mesh.triggered.connect(self.view_tesselation_mesh_event)
+        self.tesselation_mesh = QAction("&Calculate mesh points", self)
+        self.tesselation_mesh.triggered.connect(self.calculate_mesh_points_event)
 
         self.export_json_data = QAction("&Export JSON data", self)
         self.export_json_data.triggered.connect(self.export_json_data_event)
@@ -58,11 +58,11 @@ class MyWindow(QMainWindow):
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()
 
-    def view_tesselation_mesh_event(self):
+    def calculate_mesh_points_event(self):
         value, ok = QInputDialog.getInt(self, 'Espaçamento entre pontos',
                                         'Informe o espaçamento entre os pontos da malha: ')
         if ok:
-            self.canvas.draw_mesh_points(value)
+            self.canvas.calculate_mesh_points(value)
 
     def export_json_data_event(self):
         mesh_points_distance, ok = QInputDialog.getInt(self, 'Espaçamento entre pontos',
