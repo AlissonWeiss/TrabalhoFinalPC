@@ -103,6 +103,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
         self.m_control_points = []
         self.m_temp_curve = []
+        self.mesh_points = []
 
         self.update()
 
@@ -161,7 +162,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def tessellate_beziers(self):
         patches = self.m_model.getPatches()
         for patch in patches:
-            glColor3f(0.0, 0.8, 0.0)
+            glColor3f(0.0, 0.9, 0.0)
 
             triangles = Tesselation.tessellate(patch.getPoints())
             for triangle in triangles:
@@ -240,15 +241,12 @@ class MyCanvas(QtOpenGL.QGLWidget):
     # <editor-fold desc="Mesh points">
 
     def draw_mesh_points(self):
-        glColor4f(0.0, 1.0, 0.0, 1.0)
-        # glColor3f(1.0, 0.0, 0.0)
-        glPointSize(3)
+        glColor3f(0.0, 0.9, 0.0)
+        glPointSize(2)
         glBegin(GL_POINTS)
 
-        for point in self.mesh_points:
-            glVertex2f(point.getX(), point.getY())
+        [glVertex2f(p.getX(), p.getY()) for p in self.mesh_points]
         glEnd()
-        self.update()
 
     def calculate_mesh_points(self, distance_between_points: int):
         self.distance_between_points = distance_between_points
@@ -263,9 +261,11 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 x_pos = x_min + self.distance_between_points * i
                 y_pos = y_min + self.distance_between_points * j
                 point = Point(x_pos, y_pos)
-
-                if CompGeom.isPointInPolygon(self.m_model.getPoints(), point):
-                    self.mesh_points.append(point)
+                patches = self.m_view.getPatches()
+                for patch in patches:
+                    if CompGeom.isPointInPolygon(patch.getPoints(), point):
+                        self.mesh_points.append(point)
+                        break
 
     def alternate_view(self, view_mode):
         self.view_mode = view_mode
