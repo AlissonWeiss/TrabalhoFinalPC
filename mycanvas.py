@@ -1,7 +1,8 @@
+import numpy as np
 from OpenGL.GL import *
 from PyQt5 import QtOpenGL, QtCore
 from PyQt5.QtGui import QMouseEvent
-import numpy as np
+
 from hetool.compgeom.compgeom import CompGeom
 from hetool.compgeom.tesselation import Tesselation
 from hetool.geometry.point import Point
@@ -31,6 +32,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
         self.view_mode = "collector"
         self.distance_between_points = -1
         self.matrix_mesh_points = np.zeros((0, 0), dtype=Point)
+        self.matrix_connections_points = np.zeros((0, 0), dtype=list)
 
     def initializeGL(self):
         glClearColor(1.0, 1.0, 1.0, 1.0)
@@ -260,12 +262,12 @@ class MyCanvas(QtOpenGL.QGLWidget):
         x_qty = int((x_max - x_min) / self.distance_between_points)
         y_qty = int((y_max - y_min) / self.distance_between_points)
 
-        self.matrix_mesh_points = np.zeros((x_qty, y_qty), dtype=Point)
+        self.matrix_mesh_points = np.zeros((y_qty, x_qty), dtype=Point)
 
-        for i in range(x_qty):
-            for j in range(y_qty):
-                x_pos = x_min + self.distance_between_points * i
-                y_pos = y_min + self.distance_between_points * j
+        for i in range(y_qty):
+            for j in range(x_qty):
+                x_pos = x_min + self.distance_between_points * j
+                y_pos = y_min + self.distance_between_points * i
                 point = Point(x_pos, y_pos)
                 patches = self.m_view.getPatches()
                 for patch in patches:
@@ -281,3 +283,81 @@ class MyCanvas(QtOpenGL.QGLWidget):
         self.update()
 
     # </editor-fold>
+
+    def export_pvc_data(self, file_name: str):
+        num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
+
+        self.build_connect_through_matrix(num_rows, num_columns)
+
+        # self.matrix_connections_points = np.zeros((num_rows, num_columns), dtype=list)
+        #
+        # np_data = {"ref": self.matrix_mesh_points}
+        # json_data = json.dumps(np_data, cls=NumpyArrayEncoder)
+        #
+        # with open(f"{file_name}.json", "w") as file:
+        #     file.write(json_data)
+
+    def build_connect_through_matrix(self, num_rows: int, num_columns: int):
+        matrix = self.matrix_mesh_points
+        aux_matrix = self.build_temp_matrix_for_connections(num_rows, num_columns)
+        for row in range(num_rows):
+            for column in range(num_columns):
+                item = matrix[row][column]
+                if type(item) is not Point:
+                    continue
+
+                items_list = []
+                for direction in ["left", "right", "top", "down"]:
+                    items_list.append(self.get_connect_by_direction(direction, aux_matrix, row, column))
+
+                lista = [len([i for i in items_list if i != 0])]
+                lista.extend(items_list)
+
+                print(f"Row: {row}, Column: {column}, List: {lista}")
+
+    def build_temp_matrix_for_connections(self, num_rows: int, num_columns: int):
+        index = 1
+
+        matrix = np.zeros((num_rows, num_columns), dtype=np.int32)
+
+        for i in range(num_rows):
+            for j in range(num_columns):
+                item = self.matrix_mesh_points[i][j]
+                if type(item) is not Point:
+                    continue
+                matrix[i][j] = index
+                index += 1
+        print(matrix)
+        return matrix
+
+    def get_connect_by_direction(self, direction: str, indexed_items_matrix, row: int, column: int):
+        if direction == "left":
+            column -= 1
+        elif direction == "right":
+            column += 1
+        elif direction == "top":
+            row -= 1
+        elif direction == "down":
+            row += 1
+
+        try:
+            item = self.matrix_mesh_points[row][column]
+            if type(item) is Point:
+                return self.get_index_of_item(indexed_items_matrix, item)
+            else:
+                return 0
+        except:
+            return 0
+
+    def get_index_of_item(self, indexed_items_matrix: np.matrix, point: Point):
+        for idx, val in np.ndenumerate(self.matrix_mesh_points):
+            if type(val) is not Point:
+                continue
+            if val == point:
+                row, column = idx
+                return indexed_items_matrix[row][column]
+        return 0
+
+    @staticmethod
+    def get_number_of_rows_and_columns(matrix):
+        return np.shape(matrix)
