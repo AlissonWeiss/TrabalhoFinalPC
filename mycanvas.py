@@ -1,7 +1,7 @@
 from OpenGL.GL import *
 from PyQt5 import QtOpenGL, QtCore
 from PyQt5.QtGui import QMouseEvent
-
+import numpy as np
 from hetool.compgeom.compgeom import CompGeom
 from hetool.compgeom.tesselation import Tesselation
 from hetool.geometry.point import Point
@@ -30,7 +30,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
         self.view_mode = "collector"
         self.distance_between_points = -1
-        self.mesh_points = []
+        self.matrix_mesh_points = np.zeros((0, 0), dtype=Point)
 
     def initializeGL(self):
         glClearColor(1.0, 1.0, 1.0, 1.0)
@@ -103,7 +103,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
         self.m_control_points = []
         self.m_temp_curve = []
-        self.mesh_points = []
+        self.matrix_mesh_points = np.zeros((0, 0), dtype=Point)
 
         self.update()
 
@@ -242,19 +242,25 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
     def draw_mesh_points(self):
         glColor3f(0.0, 0.9, 0.0)
-        glPointSize(2)
+        glPointSize(2.5)
         glBegin(GL_POINTS)
 
-        [glVertex2f(p.getX(), p.getY()) for p in self.mesh_points]
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+                glVertex2f(item.getX(), item.getY())
+
         glEnd()
 
     def calculate_mesh_points(self, distance_between_points: int):
         self.distance_between_points = distance_between_points
-        self.mesh_points = []
         x_min, x_max, y_min, y_max = self.m_view.getBoundBox()
 
         x_qty = int((x_max - x_min) / self.distance_between_points)
         y_qty = int((y_max - y_min) / self.distance_between_points)
+
+        self.matrix_mesh_points = np.zeros((x_qty, y_qty), dtype=Point)
 
         for i in range(x_qty):
             for j in range(y_qty):
@@ -264,7 +270,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 patches = self.m_view.getPatches()
                 for patch in patches:
                     if CompGeom.isPointInPolygon(patch.getPoints(), point):
-                        self.mesh_points.append(point)
+                        self.matrix_mesh_points[i][j] = point
                         break
 
     def alternate_view(self, view_mode):
