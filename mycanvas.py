@@ -3,6 +3,7 @@ from OpenGL.GL import *
 from PyQt5 import QtOpenGL, QtCore
 from PyQt5.QtGui import QMouseEvent
 
+from enums.view_mode_enum import ViewModeEnum
 from hetool.compgeom.compgeom import CompGeom
 from hetool.compgeom.tesselation import Tesselation
 from hetool.geometry.point import Point
@@ -29,7 +30,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
         self.m_control_points = []
         self.m_temp_curve = []
 
-        self.view_mode = "collector"
+        self.view_mode = ViewModeEnum.COLLECTOR.value
         self.distance_between_points = -1
         self.matrix_mesh_points = np.zeros((0, 0), dtype=Point)
         self.matrix_connections_points = np.zeros((0, 0), dtype=list)
@@ -90,12 +91,12 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT)
 
-        if self.view_mode == "collector":
+        if self.view_mode == ViewModeEnum.COLLECTOR.value:
             self.tessellate_beziers()
             self.draw_bezier_segments()
             self.draw_bezier_points()
             self.draw_bezier_temp_curve()
-        if self.view_mode == "mesh_points":
+        if self.view_mode == ViewModeEnum.MESH_POINTS.value:
             self.draw_mesh_points()
         self.update()
 
@@ -124,7 +125,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
     # <editor-fold desc="Mouse events">
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
 
-        if self.view_mode != "collector":
+        if self.view_mode != ViewModeEnum.COLLECTOR.value:
             return
 
         pt = event.pos()
@@ -313,8 +314,6 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 lista = [len([i for i in items_list if i != 0])]
                 lista.extend(items_list)
 
-                print(f"Row: {row}, Column: {column}, List: {lista}")
-
     def build_temp_matrix_for_connections(self, num_rows: int, num_columns: int):
         index = 1
 
@@ -327,7 +326,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
                     continue
                 matrix[i][j] = index
                 index += 1
-        print(matrix)
+
         return matrix
 
     def get_connect_by_direction(self, direction: str, indexed_items_matrix, row: int, column: int):

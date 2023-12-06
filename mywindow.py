@@ -76,7 +76,7 @@ class MyWindow(QMainWindow):
         menu = QMenu("&PVI", self)
 
         self.select_side_input_temp = QAction("&1. Select side to input force", self)
-        self.select_side_input_temp.triggered.connect(self.calculate_mesh_points_event)
+        self.select_side_input_temp.triggered.connect(self.select_side_input_temp_event)
 
         self.export_json_data_pvi = QAction("&2. Export JSON data", self)
         self.export_json_data_pvi.triggered.connect(self.export_json_data_pvi_event)
@@ -93,9 +93,9 @@ class MyWindow(QMainWindow):
             self.calculate_mesh_points_event()
         elif action.text() == "&View points [F3]":
             if action.isChecked():
-                self.canvas.alternate_view("mesh_points")
+                self.canvas.alternate_view(ViewModeEnum.MESH_POINTS.value)
             else:
-                self.canvas.alternate_view("collector")
+                self.canvas.alternate_view(ViewModeEnum.COLLECTOR.value)
 
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()
@@ -141,3 +141,6 @@ class MyWindow(QMainWindow):
                 return
         else:
             return
+
+    def select_side_input_temp_event(self):
+        self.canvas.alternate_view()
