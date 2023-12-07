@@ -29,12 +29,14 @@ class MyWindow(QMainWindow):
 
         action_reset_drawings = QAction("&Reset all drawings [F1]", self)
         action_reset_drawings.setShortcut("F1")
+        action_reset_drawings.action_id = 1
         toolbar.addAction(action_reset_drawings)
 
         toolbar.addSeparator()
 
         calculate_grid_points = QAction("&Calculate grid of points [F2]", self)
         calculate_grid_points.setShortcut("F2")
+        calculate_grid_points.action_id = 2
         toolbar.addAction(calculate_grid_points)
 
         toolbar.addSeparator()
@@ -42,7 +44,15 @@ class MyWindow(QMainWindow):
         action_view_points = QAction("&View points [F3]", self)
         action_view_points.setShortcut("F3")
         action_view_points.setCheckable(True)
+        action_view_points.action_id = 3
         toolbar.addAction(action_view_points)
+
+        toolbar.addSeparator()
+
+        select_points = QAction("&Select points [F4]", self)
+        select_points.setShortcut("F4")
+        select_points.action_id = 4
+        toolbar.addAction(select_points)
 
         toolbar.addSeparator()
 
@@ -75,27 +85,38 @@ class MyWindow(QMainWindow):
     def __create_pvi_menu(self):
         menu = QMenu("&PVI", self)
 
-        self.select_side_input_temp = QAction("&1. Select side to input force", self)
-        self.select_side_input_temp.triggered.connect(self.select_side_input_temp_event)
+        self.pvi_input_force = QAction("&1. Input force on selected points", self)
+        self.pvi_input_force.triggered.connect(self.select_points_event)
 
-        self.export_json_data_pvi = QAction("&2. Export JSON data", self)
+        self.pvi_define_fixed_points = QAction("&2. Define selected points as as fixed", self)
+        self.pvi_define_fixed_points.triggered.connect(self.select_points_event)
+
+        self.export_json_data_pvi = QAction("&3. Export JSON data", self)
         self.export_json_data_pvi.triggered.connect(self.export_json_data_pvi_event)
 
-        menu.addAction(self.select_side_input_temp)
+        self.reset_selected_points_pvi = QAction("&4. Reset selected points", self)
+        self.reset_selected_points_pvi.triggered.connect(self.reset_selected_points)
+
+        menu.addAction(self.pvi_input_force)
+        menu.addAction(self.pvi_define_fixed_points)
         menu.addAction(self.export_json_data_pvi)
+        menu.addSeparator()
+        menu.addAction(self.reset_selected_points_pvi)
 
         return menu
 
     def on_toolbar_click(self, action):
-        if action.text() == "&Reset all drawings [F1]":
+        if action.action_id == 1:
             self.canvas.clear_draws()
-        elif action.text() == "&Calculate grid of points [F2]":
+        elif action.action_id == 2:
             self.calculate_mesh_points_event()
-        elif action.text() == "&View points [F3]":
+        elif action.action_id == 3:
             if action.isChecked():
                 self.canvas.alternate_view(ViewModeEnum.MESH_POINTS.value)
             else:
                 self.canvas.alternate_view(ViewModeEnum.COLLECTOR.value)
+        elif action.action_id == 4:
+            self.select_points_event()
 
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()
@@ -142,6 +163,8 @@ class MyWindow(QMainWindow):
         else:
             return
 
-    def select_side_input_temp_event(self):
-        self.canvas.alternate_view(ViewModeEnum.SELECT_PVC_SIDE.value)
-        
+    def select_points_event(self):
+        self.canvas.alternate_view(ViewModeEnum.SELECT_POINTS.value)
+
+    def reset_selected_points(self):
+        self.canvas.reset_selected_points()
