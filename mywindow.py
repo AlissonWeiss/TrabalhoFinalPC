@@ -143,4 +143,5 @@ class MyWindow(QMainWindow):
             return
 
     def select_side_input_temp_event(self):
-        self.canvas.alternate_view()
+        self.canvas.alternate_view(ViewModeEnum.SELECT_PVC_SIDE.value)
+        

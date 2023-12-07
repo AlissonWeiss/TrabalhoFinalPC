@@ -1,7 +1,8 @@
 import numpy as np
 from OpenGL.GL import *
 from PyQt5 import QtOpenGL, QtCore
-from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtCore import Qt, QRect, QPoint, QPointF, QRectF
+from PyQt5.QtGui import QMouseEvent, QBrush, QPainter
 
 from enums.view_mode_enum import ViewModeEnum
 from hetool.compgeom.compgeom import CompGeom
@@ -34,6 +35,10 @@ class MyCanvas(QtOpenGL.QGLWidget):
         self.distance_between_points = -1
         self.matrix_mesh_points = np.zeros((0, 0), dtype=Point)
         self.matrix_connections_points = np.zeros((0, 0), dtype=list)
+
+        self.select_start_point = Point(0, 0)
+        self.select_end_point = Point(0, 0)
+        self.is_selecting = False
 
     def initializeGL(self):
         glClearColor(1.0, 1.0, 1.0, 1.0)
@@ -89,15 +94,17 @@ class MyCanvas(QtOpenGL.QGLWidget):
         self.scale_world_window(1.1)
 
     def paintGL(self):
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         if self.view_mode == ViewModeEnum.COLLECTOR.value:
             self.tessellate_beziers()
             self.draw_bezier_segments()
             self.draw_bezier_points()
             self.draw_bezier_temp_curve()
-        if self.view_mode == ViewModeEnum.MESH_POINTS.value:
+        if self.view_mode in (ViewModeEnum.MESH_POINTS.value, ViewModeEnum.SELECT_PVC_SIDE.value):
             self.draw_mesh_points()
+        if self.is_selecting and self.view_mode == ViewModeEnum.SELECT_PVC_SIDE.value:
+            self.draw_selecting_area()
         self.update()
 
     def clear_draws(self):
@@ -124,6 +131,8 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
     # <editor-fold desc="Mouse events">
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+
+        self.is_selecting = False
 
         if self.view_mode != ViewModeEnum.COLLECTOR.value:
             return
@@ -156,6 +165,13 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         converted_point = self.convert_point_coordinates_to_universe(event.pos())
         self.predict_bezier(converted_point.x(), converted_point.y())
+        self.select_end_point = self.convert_point_coordinates_to_universe(event.pos())
+        self.update()
+
+    def mousePressEvent(self, event):
+        self.select_start_point = self.convert_point_coordinates_to_universe(event.pos())
+        self.select_end_point = self.select_start_point
+        self.is_selecting = True
         self.update()
 
     # </editor-fold>
@@ -255,6 +271,20 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 glVertex2f(item.getX(), item.getY())
 
         glEnd()
+
+    def draw_selecting_area(self):
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        glBegin(GL_QUADS)
+        glColor4f(0.0, 0.0, 1, 0.3)  # Cor azul
+        glVertex2f(self.select_start_point.x(), self.select_start_point.y())
+        glVertex2f(self.select_end_point.x(), self.select_start_point.y())
+        glVertex2f(self.select_end_point.x(), self.select_end_point.y())
+        glVertex2f(self.select_start_point.x(), self.select_end_point.y())
+        glEnd()
+
+        glDisable(GL_BLEND)
 
     def calculate_mesh_points(self, distance_between_points: int):
         self.distance_between_points = distance_between_points
