@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QAction, QDesktopWidget, QMenuBar, QMenu, QInputDialog, QMessageBox, QLabel, \
-    QSpinBox
+    QSpinBox, QDialog, QVBoxLayout, QPushButton
 
 from mycanvas import *
 
@@ -95,7 +95,7 @@ class MyWindow(QMainWindow):
         menu = QMenu("&PVI", self)
 
         self.pvi_input_force = QAction("&1. Input force on selected points", self)
-        self.pvi_input_force.triggered.connect(self.export_json_data_pvi_event)
+        self.pvi_input_force.triggered.connect(self.pvi_define_force_selected_points_event)
 
         self.pvi_define_fixed_points = QAction("&2. Define selected points as as fixed", self)
         self.pvi_define_fixed_points.triggered.connect(self.pvi_define_fixed_points_event)
@@ -151,14 +151,6 @@ class MyWindow(QMainWindow):
         self.canvas.calculate_mesh_points(self.distance_between_points.value())
 
     def export_json_data_pcv_event(self):
-        mesh_points_distance, ok = QInputDialog.getInt(self, 'Espaçamento entre pontos',
-                                                       'Informe o espaçamento entre os pontos da malha: ')
-        if ok:
-            if mesh_points_distance <= 0:
-                QMessageBox.about(self, "Valor inválido", "O valor do espaçamento deve ser maior que zero.")
-                return
-        else:
-            return
 
         file_name, ok = QInputDialog.getText(self, 'Nome do arquivo',
                                                    'Informe o nome do arquivo a ser salvo: ')
@@ -171,14 +163,6 @@ class MyWindow(QMainWindow):
             return
 
     def export_json_data_pvi_event(self):
-        mesh_points_distance, ok = QInputDialog.getInt(self, 'Espaçamento entre pontos',
-                                                       'Informe o espaçamento entre os pontos da malha: ')
-        if ok:
-            if mesh_points_distance <= 0:
-                QMessageBox.about(self, "Valor inválido", "O valor do espaçamento deve ser maior que zero.")
-                return
-        else:
-            return
 
         file_name, ok = QInputDialog.getText(self, 'Nome do arquivo',
                                                    'Informe o nome do arquivo a ser salvo: ')
@@ -186,6 +170,7 @@ class MyWindow(QMainWindow):
             if file_name == "" or file_name is None:
                 QMessageBox.about(self, "Valor inválido", "O nome do arquivo deve possuir pelo menos um caractere.")
                 return
+            self.canvas.export_pvi_data(file_name)
         else:
             return
 
@@ -194,3 +179,47 @@ class MyWindow(QMainWindow):
 
     def pvi_define_fixed_points_event(self):
         self.canvas.pvi_define_selected_points_as_fixed()
+
+    def pvi_define_force_selected_points_event(self):
+        self.show_dialog("input_pvi_force")
+
+        #self.canvas.pvi_define_force_selected_points_event(1, 2)
+
+    def show_dialog(self, which_layout):
+        self.dialog = QDialog()
+        self.dialog.setFixedWidth(350)
+        self.dialog.setFixedHeight(150)
+
+        self.dialog_layout = QVBoxLayout(self)
+        self.dialog_layout.layout_name = which_layout
+
+        if which_layout == "input_pvi_force":
+            self.dialog.setWindowTitle("Define applied force on selected points")
+
+            self.dialog_layout.addWidget(QLabel("Applied force on X: "))
+            self.x_applied_force = QSpinBox(self)
+            self.x_applied_force.setMinimum(-999999)
+            self.x_applied_force.setMaximum(999999)
+            self.dialog_layout.addWidget(self.x_applied_force)
+
+            self.dialog_layout.addWidget(QLabel("Applied force on Y: "))
+            self.y_applied_force = QSpinBox(self)
+            self.y_applied_force.setMinimum(-999999)
+            self.y_applied_force.setMaximum(999999)
+            self.dialog_layout.addWidget(self.y_applied_force)
+
+        ok_button = QPushButton("OK", self)
+        ok_button.clicked.connect(self.dialog_ok_clicked)
+
+        self.dialog_layout.addWidget(ok_button)
+        self.dialog.setLayout(self.dialog_layout)
+
+        self.dialog.exec_()
+
+    def dialog_ok_clicked(self):
+        if self.dialog_layout.layout_name == "input_pvi_force":
+        #if e == "input_pvi_force":
+            x_force = self.x_applied_force.value()
+            y_force = self.y_applied_force.value()
+            self.canvas.pvi_define_force_selected_points_event(x_force, y_force)
+        self.dialog.close()

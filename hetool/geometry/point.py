@@ -11,6 +11,8 @@ class Point():
         self.attributes = []
 
         self.fixed_point = False
+        self.x_force = float(0)
+        self.y_force = float(0)
 
     def setX(self, _x):
         self.x = _x
@@ -39,6 +41,18 @@ class Point():
 
     def isFixedPoint(self):
         return self.fixed_point
+
+    def setXForce(self, _force: float):
+        self.x_force = _force
+
+    def getXForce(self):
+        return self.x_force
+
+    def setYForce(self, _force: float):
+        self.y_force = _force
+
+    def getYForce(self):
+        return self.y_force
 
     # Equality test with tolerance (Manhattan distance)
     @staticmethod

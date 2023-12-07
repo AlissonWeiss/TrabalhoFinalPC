@@ -341,9 +341,23 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 if type(item) is not Point:
                     continue
                 item.setSelected(False)
-
+                item.setFixedPoint(False)
+                item.setXForce(0.0)
 
     def export_pvc_data(self, file_name: str):
+        num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
+
+        self.build_connect_through_matrix(num_rows, num_columns)
+
+        # self.matrix_connections_points = np.zeros((num_rows, num_columns), dtype=list)
+        #
+        # np_data = {"ref": self.matrix_mesh_points}
+        # json_data = json.dumps(np_data, cls=NumpyArrayEncoder)
+        #
+        # with open(f"{file_name}.json", "w") as file:
+        #     file.write(json_data)
+
+    def export_pvi_data(self, file_name: str):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
 
         self.build_connect_through_matrix(num_rows, num_columns)
@@ -427,4 +441,15 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
                 if item.isSelected():
                     item.setFixedPoint(True)
-                    print(f"Fixed: {item.isFixedPoint()}")
+                    # print(f"Item: {item.getX()}, {item.getY()}, {item.isFixed()}")
+
+    def pvi_define_force_selected_points_event(self, _force_x: float, _force_y: float):
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+
+                if item.isSelected():
+                    item.setXForce(_force_x)
+                    item.setYForce(_force_y)
+                    print(f"Item: {item.getX()}, {item.getY()}, {item.getXForce()}, {item.getYForce()}")
