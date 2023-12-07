@@ -101,9 +101,9 @@ class MyCanvas(QtOpenGL.QGLWidget):
             self.draw_bezier_segments()
             self.draw_bezier_points()
             self.draw_bezier_temp_curve()
-        if self.view_mode in (ViewModeEnum.MESH_POINTS.value, ViewModeEnum.SELECT_POINTS.value):
+        if self.view_mode in (ViewModeEnum.MESH_POINTS.value, ViewModeEnum.SELECT_POINTS.value, ViewModeEnum.DESELECT_POINTS.value):
             self.draw_mesh_points()
-        if self.is_selecting and self.view_mode == ViewModeEnum.SELECT_POINTS.value:
+        if self.is_selecting and self.view_mode in (ViewModeEnum.SELECT_POINTS.value, ViewModeEnum.DESELECT_POINTS.value):
             self.draw_selecting_area()
         self.update()
 
@@ -134,8 +134,8 @@ class MyCanvas(QtOpenGL.QGLWidget):
         if self.view_mode == ViewModeEnum.COLLECTOR.value:
             self.collect_bezier(event)
 
-        if self.view_mode == ViewModeEnum.SELECT_POINTS.value and self.is_selecting:
-            self.select_points_inside_area()
+        if self.view_mode in (ViewModeEnum.SELECT_POINTS.value, ViewModeEnum.DESELECT_POINTS.value) and self.is_selecting:
+            self.select_points_inside_area(True if self.view_mode == ViewModeEnum.SELECT_POINTS.value else False)
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         converted_point = self.convert_point_coordinates_to_universe(event.pos())
@@ -319,7 +319,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
     # </editor-fold>
 
-    def select_points_inside_area(self):
+    def select_points_inside_area(self, select: bool):
         x1 = min(self.select_start_point.x(), self.select_end_point.x())
         x2 = max(self.select_start_point.x(), self.select_end_point.x())
         y1 = min(self.select_start_point.y(), self.select_end_point.y())
@@ -333,7 +333,15 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 px, py = item.getX(), item.getY()
 
                 if x1 <= px <= x2 and y1 <= py <= y2:
-                    item.setSelected(True)
+                    item.setSelected(select)
+
+    def reset_selected_points(self):
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+                item.setSelected(False)
+
 
     def export_pvc_data(self, file_name: str):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
@@ -406,13 +414,6 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 row, column = idx
                 return indexed_items_matrix[row][column]
         return 0
-
-    def reset_selected_points(self):
-        for row in self.matrix_mesh_points:
-            for item in row:
-                if type(item) is not Point:
-                    continue
-                item.setSelected(False)
 
     @staticmethod
     def get_number_of_rows_and_columns(matrix):

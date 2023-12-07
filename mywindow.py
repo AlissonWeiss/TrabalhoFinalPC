@@ -51,8 +51,17 @@ class MyWindow(QMainWindow):
 
         select_points = QAction("&Select points [F4]", self)
         select_points.setShortcut("F4")
+        select_points.setCheckable(True)
         select_points.action_id = 4
         toolbar.addAction(select_points)
+
+        toolbar.addSeparator()
+
+        deselect_points = QAction("&Deselect points [F5]", self)
+        deselect_points.setShortcut("F5")
+        deselect_points.setCheckable(True)
+        deselect_points.action_id = 5
+        toolbar.addAction(deselect_points)
 
         toolbar.addSeparator()
 
@@ -86,10 +95,10 @@ class MyWindow(QMainWindow):
         menu = QMenu("&PVI", self)
 
         self.pvi_input_force = QAction("&1. Input force on selected points", self)
-        self.pvi_input_force.triggered.connect(self.select_points_event)
+        self.pvi_input_force.triggered.connect(self.export_json_data_pvi_event)
 
         self.pvi_define_fixed_points = QAction("&2. Define selected points as as fixed", self)
-        self.pvi_define_fixed_points.triggered.connect(self.select_points_event)
+        self.pvi_define_fixed_points.triggered.connect(self.export_json_data_pvi_event)
 
         self.export_json_data_pvi = QAction("&3. Export JSON data", self)
         self.export_json_data_pvi.triggered.connect(self.export_json_data_pvi_event)
@@ -116,7 +125,9 @@ class MyWindow(QMainWindow):
             else:
                 self.canvas.alternate_view(ViewModeEnum.COLLECTOR.value)
         elif action.action_id == 4:
-            self.select_points_event()
+            self.canvas.alternate_view(ViewModeEnum.SELECT_POINTS.value)
+        elif action.action_id == 5:
+            self.canvas.alternate_view(ViewModeEnum.DESELECT_POINTS.value)
 
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()
@@ -162,9 +173,6 @@ class MyWindow(QMainWindow):
                 return
         else:
             return
-
-    def select_points_event(self):
-        self.canvas.alternate_view(ViewModeEnum.SELECT_POINTS.value)
 
     def reset_selected_points(self):
         self.canvas.reset_selected_points()
