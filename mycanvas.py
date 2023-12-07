@@ -419,3 +419,12 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def get_number_of_rows_and_columns(matrix):
         return np.shape(matrix)
 
+    def pvi_define_selected_points_as_fixed(self):
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+
+                if item.isSelected():
+                    item.setFixedPoint(True)
+                    print(f"Fixed: {item.isFixedPoint()}")

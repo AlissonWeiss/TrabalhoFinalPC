@@ -41,27 +41,27 @@ class MyWindow(QMainWindow):
 
         toolbar.addSeparator()
 
-        action_view_points = QAction("&View points [F3]", self)
-        action_view_points.setShortcut("F3")
-        action_view_points.setCheckable(True)
-        action_view_points.action_id = 3
-        toolbar.addAction(action_view_points)
+        self.action_view_points = QAction("&View points [F3]", self)
+        self.action_view_points.setShortcut("F3")
+        self.action_view_points.setCheckable(True)
+        self.action_view_points.action_id = 3
+        toolbar.addAction(self.action_view_points)
 
         toolbar.addSeparator()
 
-        select_points = QAction("&Select points [F4]", self)
-        select_points.setShortcut("F4")
-        select_points.setCheckable(True)
-        select_points.action_id = 4
-        toolbar.addAction(select_points)
+        self.select_points = QAction("&Select points [F4]", self)
+        self.select_points.setShortcut("F4")
+        self.select_points.setCheckable(True)
+        self.select_points.action_id = 4
+        toolbar.addAction(self.select_points)
 
         toolbar.addSeparator()
 
-        deselect_points = QAction("&Deselect points [F5]", self)
-        deselect_points.setShortcut("F5")
-        deselect_points.setCheckable(True)
-        deselect_points.action_id = 5
-        toolbar.addAction(deselect_points)
+        self.deselect_points = QAction("&Deselect points [F5]", self)
+        self.deselect_points.setShortcut("F5")
+        self.deselect_points.setCheckable(True)
+        self.deselect_points.action_id = 5
+        toolbar.addAction(self.deselect_points)
 
         toolbar.addSeparator()
 
@@ -98,7 +98,7 @@ class MyWindow(QMainWindow):
         self.pvi_input_force.triggered.connect(self.export_json_data_pvi_event)
 
         self.pvi_define_fixed_points = QAction("&2. Define selected points as as fixed", self)
-        self.pvi_define_fixed_points.triggered.connect(self.export_json_data_pvi_event)
+        self.pvi_define_fixed_points.triggered.connect(self.pvi_define_fixed_points_event)
 
         self.export_json_data_pvi = QAction("&3. Export JSON data", self)
         self.export_json_data_pvi.triggered.connect(self.export_json_data_pvi_event)
@@ -120,14 +120,29 @@ class MyWindow(QMainWindow):
         elif action.action_id == 2:
             self.calculate_mesh_points_event()
         elif action.action_id == 3:
+            self.select_points.setChecked(False)
+            self.deselect_points.setChecked(False)
             if action.isChecked():
                 self.canvas.alternate_view(ViewModeEnum.MESH_POINTS.value)
             else:
                 self.canvas.alternate_view(ViewModeEnum.COLLECTOR.value)
         elif action.action_id == 4:
-            self.canvas.alternate_view(ViewModeEnum.SELECT_POINTS.value)
+            self.action_view_points.setChecked(False)
+            self.deselect_points.setChecked(False)
+
+            if action.isChecked():
+                self.canvas.alternate_view(ViewModeEnum.SELECT_POINTS.value)
+            else:
+                self.canvas.alternate_view(ViewModeEnum.MESH_POINTS.value)
+                self.action_view_points.setChecked(True)
         elif action.action_id == 5:
-            self.canvas.alternate_view(ViewModeEnum.DESELECT_POINTS.value)
+            self.action_view_points.setChecked(False)
+            self.select_points.setChecked(False)
+            if action.isChecked():
+                self.canvas.alternate_view(ViewModeEnum.DESELECT_POINTS.value)
+            else:
+                self.canvas.alternate_view(ViewModeEnum.MESH_POINTS.value)
+                self.action_view_points.setChecked(True)
 
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()
@@ -176,3 +191,6 @@ class MyWindow(QMainWindow):
 
     def reset_selected_points(self):
         self.canvas.reset_selected_points()
+
+    def pvi_define_fixed_points_event(self):
+        self.canvas.pvi_define_selected_points_as_fixed()

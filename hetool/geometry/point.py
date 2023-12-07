@@ -10,6 +10,8 @@ class Point():
         self.vertex = None
         self.attributes = []
 
+        self.fixed_point = False
+
     def setX(self, _x):
         self.x = _x
 
@@ -31,6 +33,12 @@ class Point():
 
     def isSelected(self):
         return self.selected
+
+    def setFixedPoint(self, _fixed):
+        self.fixed_point = _fixed
+
+    def isFixedPoint(self):
+        return self.fixed_point
 
     # Equality test with tolerance (Manhattan distance)
     @staticmethod
