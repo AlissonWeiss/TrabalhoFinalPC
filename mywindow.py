@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QAction, QDesktopWidget, QMenuBar, QMenu, QInputDialog, QMessageBox, QLabel, \
-    QSpinBox, QDialog, QVBoxLayout, QPushButton
+    QSpinBox, QDialog, QVBoxLayout, QPushButton, QCheckBox
 
 from mycanvas import *
 
@@ -178,12 +178,10 @@ class MyWindow(QMainWindow):
         self.canvas.reset_selected_points()
 
     def pvi_define_fixed_points_event(self):
-        self.canvas.pvi_define_selected_points_as_fixed()
+        self.show_dialog("define_pvi_fixed_points")
 
     def pvi_define_force_selected_points_event(self):
         self.show_dialog("input_pvi_force")
-
-        #self.canvas.pvi_define_force_selected_points_event(1, 2)
 
     def show_dialog(self, which_layout):
         self.dialog = QDialog()
@@ -208,6 +206,16 @@ class MyWindow(QMainWindow):
             self.y_applied_force.setMaximum(999999)
             self.dialog_layout.addWidget(self.y_applied_force)
 
+        if which_layout == "define_pvi_fixed_points":
+            self.dialog.setWindowTitle("Define fixed fields")
+
+            self.fixed_on_x = QCheckBox("Fixed on X", self)
+            self.dialog_layout.addWidget(self.fixed_on_x)
+
+            self.fixed_on_y = QCheckBox("Fixed on Y", self)
+            self.dialog_layout.addWidget(self.fixed_on_y)
+
+
         ok_button = QPushButton("OK", self)
         ok_button.clicked.connect(self.dialog_ok_clicked)
 
@@ -218,8 +226,12 @@ class MyWindow(QMainWindow):
 
     def dialog_ok_clicked(self):
         if self.dialog_layout.layout_name == "input_pvi_force":
-        #if e == "input_pvi_force":
             x_force = self.x_applied_force.value()
             y_force = self.y_applied_force.value()
             self.canvas.pvi_define_force_selected_points_event(x_force, y_force)
+        if self.dialog_layout.layout_name == "define_pvi_fixed_points":
+            fixed_x = self.fixed_on_x.isChecked()
+            fixed_y = self.fixed_on_y.isChecked()
+            self.canvas.pvi_define_selected_points_as_fixed()
+
         self.dialog.close()
