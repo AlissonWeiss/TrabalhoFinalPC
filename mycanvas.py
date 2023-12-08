@@ -433,15 +433,16 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def get_number_of_rows_and_columns(matrix):
         return np.shape(matrix)
 
-    def pvi_define_selected_points_as_fixed(self):
+    def pvi_define_selected_points_as_fixed(self, fixed_x, fixed_y):
         for row in self.matrix_mesh_points:
             for item in row:
                 if type(item) is not Point:
                     continue
 
                 if item.isSelected():
-                    item.setFixedPoint(True)
-                    # print(f"Item: {item.getX()}, {item.getY()}, {item.isFixed()}")
+                    item.setFixedX(fixed_x)
+                    item.setFixedY(fixed_y)
+                    # print(f"Item: {item.getX()}, {item.getY()}, {item.isFixedX()}, {item.isFixedY()}")
 
     def pvi_define_force_selected_points_event(self, _force_x: float, _force_y: float):
         for row in self.matrix_mesh_points:

@@ -10,7 +10,8 @@ class Point():
         self.vertex = None
         self.attributes = []
 
-        self.fixed_point = False
+        self.x_fixed = False
+        self.y_fixed = False
         self.x_force = float(0)
         self.y_force = float(0)
 
@@ -36,11 +37,17 @@ class Point():
     def isSelected(self):
         return self.selected
 
-    def setFixedPoint(self, _fixed):
-        self.fixed_point = _fixed
+    def setFixedX(self, _fixed):
+        self.x_fixed = _fixed
 
-    def isFixedPoint(self):
-        return self.fixed_point
+    def setFixedY(self, _fixed):
+        self.y_fixed = _fixed
+
+    def isFixedX(self):
+        return self.x_fixed
+
+    def isFixedY(self):
+        return self.y_fixed
 
     def setXForce(self, _force: float):
         self.x_force = _force

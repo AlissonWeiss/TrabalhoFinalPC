@@ -232,6 +232,6 @@ class MyWindow(QMainWindow):
         if self.dialog_layout.layout_name == "define_pvi_fixed_points":
             fixed_x = self.fixed_on_x.isChecked()
             fixed_y = self.fixed_on_y.isChecked()
-            self.canvas.pvi_define_selected_points_as_fixed()
+            self.canvas.pvi_define_selected_points_as_fixed(fixed_x, fixed_y)
 
         self.dialog.close()
