@@ -1,8 +1,3 @@
-from json import JSONEncoder
-
-import numpy
-
-
 class MyPoint:
     def __init__(self):
         self.m_x = 0
@@ -103,10 +98,3 @@ class MyModel:
                         ymax = temp_ymax
 
         return xmin, xmax, ymin, ymax
-
-
-class NumpyArrayEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, numpy.ndarray):
-            return obj.tolist()
-        return JSONEncoder.default(self, obj)

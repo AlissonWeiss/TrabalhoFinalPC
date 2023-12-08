@@ -1,8 +1,9 @@
+import json
+
 import numpy as np
 from OpenGL.GL import *
 from PyQt5 import QtOpenGL, QtCore
-from PyQt5.QtCore import Qt, QRect, QPoint, QPointF, QRectF
-from PyQt5.QtGui import QMouseEvent, QBrush, QPainter
+from PyQt5.QtGui import QMouseEvent
 
 from enums.view_mode_enum import ViewModeEnum
 from hetool.compgeom.compgeom import CompGeom
@@ -360,19 +361,31 @@ class MyCanvas(QtOpenGL.QGLWidget):
     def export_pvi_data(self, file_name: str):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
 
-        self.build_connect_through_matrix(num_rows, num_columns)
+        file_data = {
+            "coords": self.build_list_coordinate_through_matrix(),
+            "connect": self.build_connect_through_matrix(num_rows, num_columns)
+        }
 
-        # self.matrix_connections_points = np.zeros((num_rows, num_columns), dtype=list)
-        #
-        # np_data = {"ref": self.matrix_mesh_points}
-        # json_data = json.dumps(np_data, cls=NumpyArrayEncoder)
-        #
-        # with open(f"{file_name}.json", "w") as file:
-        #     file.write(json_data)
+        with open(f"{file_name}.json", "w") as file:
+            file.write(json.dumps(file_data, default=json_serial, indent=4))
+
+    def build_list_coordinate_through_matrix(self):
+        coordinates = []
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+                coordinates.append([item.getX(), item.getY()])
+
+        return coordinates
+
+
+
 
     def build_connect_through_matrix(self, num_rows: int, num_columns: int):
         matrix = self.matrix_mesh_points
         aux_matrix = self.build_temp_matrix_for_connections(num_rows, num_columns)
+        connections = []
         for row in range(num_rows):
             for column in range(num_columns):
                 item = matrix[row][column]
@@ -381,10 +394,13 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
                 items_list = []
                 for direction in ["left", "right", "top", "down"]:
-                    items_list.append(self.get_connect_by_direction(direction, aux_matrix, row, column))
+                    items_list.append(self.get_connect_by_direction(direction, aux_matrix, row, column, num_rows, num_columns))
 
                 lista = [len([i for i in items_list if i != 0])]
                 lista.extend(items_list)
+                connections.append(lista)
+
+        return connections
 
     def build_temp_matrix_for_connections(self, num_rows: int, num_columns: int):
         index = 1
@@ -401,15 +417,23 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
         return matrix
 
-    def get_connect_by_direction(self, direction: str, indexed_items_matrix, row: int, column: int):
+    def get_connect_by_direction(self, direction: str, indexed_items_matrix, row: int, column: int, num_rows: int, num_columns: int):
         if direction == "left":
             column -= 1
+            if column < 0:
+                return 0
         elif direction == "right":
             column += 1
+            if column > num_columns:
+                return 0
         elif direction == "top":
             row -= 1
+            if row < 0:
+                return 0
         elif direction == "down":
             row += 1
+            if row > num_rows:
+                return 0
 
         try:
             item = self.matrix_mesh_points[row][column]
@@ -454,3 +478,11 @@ class MyCanvas(QtOpenGL.QGLWidget):
                     item.setXForce(_force_x)
                     item.setYForce(_force_y)
                     print(f"Item: {item.getX()}, {item.getY()}, {item.getXForce()}, {item.getYForce()}")
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, np.int32):
+        return int(obj)
+    raise TypeError("Type %s not serializable" % type(obj))
