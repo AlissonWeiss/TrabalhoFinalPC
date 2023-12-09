@@ -262,7 +262,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
     # <editor-fold desc="Mesh points">
 
     def draw_mesh_points(self):
-        glPointSize(2)
+        glPointSize(3)
         glBegin(GL_POINTS)
 
         for row in self.matrix_mesh_points:
@@ -272,7 +272,12 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 if item.isSelected():
                     glColor3f(0.9, 0.0, 0.0)
                 else:
-                    glColor3f(0.0, 0.9, 0.0)
+                    if item.isFixedX() or item.isFixedY():
+                        glColor3f(0.9, 0.9, 0.05)
+                    elif item.getXForce() != 0 or item.getYForce() != 0:
+                        glColor3f(0.0, 0.0, 1.0)
+                    else:
+                        glColor3f(0.0, 0.9, 0.0)
                 glVertex2f(item.getX(), item.getY())
 
         glEnd()
@@ -342,8 +347,10 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 if type(item) is not Point:
                     continue
                 item.setSelected(False)
-                item.setFixedPoint(False)
+                item.setFixedX(False)
+                item.setFixedY(False)
                 item.setXForce(0.0)
+                item.setYForce(0.0)
 
     def export_pvc_data(self, file_name: str):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
@@ -362,8 +369,10 @@ class MyCanvas(QtOpenGL.QGLWidget):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
 
         file_data = {
-            "coords": self.build_list_coordinate_through_matrix(),
-            "connect": self.build_connect_through_matrix(num_rows, num_columns)
+            "coordinates": self.build_list_coordinate_through_matrix(),
+            "connect": self.build_connect_through_matrix(num_rows, num_columns),
+            "restrictions": self.build_list_restrictions_through_matrix(),
+            "forces": self.build_list_forces_through_matrix()
         }
 
         with open(f"{file_name}.json", "w") as file:
@@ -379,8 +388,25 @@ class MyCanvas(QtOpenGL.QGLWidget):
 
         return coordinates
 
+    def build_list_restrictions_through_matrix(self):
+        restrictions = []
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+                restrictions.append([item.isFixedX(), item.isFixedY()])
 
+        return restrictions
 
+    def build_list_forces_through_matrix(self):
+        forces = []
+        for row in self.matrix_mesh_points:
+            for item in row:
+                if type(item) is not Point:
+                    continue
+                forces.append([item.getXForce(), item.getYForce()])
+
+        return forces
 
     def build_connect_through_matrix(self, num_rows: int, num_columns: int):
         matrix = self.matrix_mesh_points
