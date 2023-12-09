@@ -80,13 +80,13 @@ class MyWindow(QMainWindow):
     def __create_pvc_menu(self):
         menu = QMenu("&PVC", self)
 
-        self.select_side_input_temp = QAction("&1. Select side to input temperature", self)
-        self.select_side_input_temp.triggered.connect(self.calculate_mesh_points_event)
+        self.input_temperature_selected_points = QAction("&1. Input temperature on selected points", self)
+        self.input_temperature_selected_points.triggered.connect(self.pvc_define_temperature_selected_points)
 
         self.export_json_data_pvc = QAction("&2. Export JSON data", self)
         self.export_json_data_pvc.triggered.connect(self.export_json_data_pcv_event)
 
-        menu.addAction(self.select_side_input_temp)
+        menu.addAction(self.input_temperature_selected_points)
         menu.addAction(self.export_json_data_pvc)
 
         return menu
@@ -177,6 +177,9 @@ class MyWindow(QMainWindow):
     def reset_selected_points(self):
         self.canvas.reset_selected_points()
 
+    def pvc_define_temperature_selected_points(self):
+        self.show_dialog("input_temperature_pvc")
+
     def pvi_define_fixed_points_event(self):
         self.show_dialog("define_pvi_fixed_points")
 
@@ -215,6 +218,14 @@ class MyWindow(QMainWindow):
             self.fixed_on_y = QCheckBox("Fixed on Y", self)
             self.dialog_layout.addWidget(self.fixed_on_y)
 
+        if which_layout == "input_temperature_pvc":
+            self.dialog.setWindowTitle("Define temperature on selected points")
+
+            self.dialog_layout.addWidget(QLabel("Temperature: "))
+            self.temperature_on_point = QSpinBox(self)
+            self.temperature_on_point.setMinimum(-999999)
+            self.temperature_on_point.setMaximum(999999)
+            self.dialog_layout.addWidget(self.temperature_on_point)
 
         ok_button = QPushButton("OK", self)
         ok_button.clicked.connect(self.dialog_ok_clicked)
@@ -233,5 +244,9 @@ class MyWindow(QMainWindow):
             fixed_x = self.fixed_on_x.isChecked()
             fixed_y = self.fixed_on_y.isChecked()
             self.canvas.pvi_define_selected_points_as_fixed(fixed_x, fixed_y)
+
+        if self.dialog_layout.layout_name == "input_temperature_pvc":
+            temperature = self.temperature_on_point.value()
+            self.canvas.pvc_define_temperature_selected_points(temperature)
 
         self.dialog.close()

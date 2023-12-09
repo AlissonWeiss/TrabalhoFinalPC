@@ -14,6 +14,7 @@ class Point():
         self.y_fixed = False
         self.x_force = float(0)
         self.y_force = float(0)
+        self.temperature = float(0)
 
     def setX(self, _x):
         self.x = _x
@@ -60,6 +61,12 @@ class Point():
 
     def getYForce(self):
         return self.y_force
+
+    def setTemperature(self, _temperature):
+        self.temperature = _temperature
+
+    def getTemperature(self):
+        return self.temperature
 
     # Equality test with tolerance (Manhattan distance)
     @staticmethod
