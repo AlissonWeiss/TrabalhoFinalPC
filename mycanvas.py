@@ -405,7 +405,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
             for item in row:
                 if type(item) is not Point:
                     continue
-                restrictions.append([item.isFixedX(), item.isFixedY()])
+                restrictions.append([1 if item.isFixedX() else 0, 1 if item.isFixedY() else 0])
 
         return restrictions
 
