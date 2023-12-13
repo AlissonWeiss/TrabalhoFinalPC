@@ -59,7 +59,6 @@ def main(_file_name):
     v = np.zeros((ndofs, 1), dtype=np.float64)
     a = np.zeros((ndofs, 1), dtype=np.float64)
     res = np.zeros((N, 1), dtype=np.float64)
-    res_y = np.zeros((N, 1), dtype=np.float64)
 
     fi = np.zeros((ndofs, 1), dtype=np.float64)
     a[:] = (forces - fi) / mass
@@ -67,7 +66,6 @@ def main(_file_name):
     particle_to_follow = choose_particle_to_follow(forces=forces, restrictions=restrictions, choice="with_force")
     # particle_to_follow = choose_particle_to_follow(forces=forces, restrictions=restrictions, choice="fixed")
     for i in range(N):
-        print(f"{i + 1} of {N}")
         v += a * (0.5 * h)
         u += v * h
 

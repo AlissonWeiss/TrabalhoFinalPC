@@ -65,6 +65,20 @@ class MyWindow(QMainWindow):
 
         toolbar.addSeparator()
 
+        self.reset_selected_points_action = QAction("&Reset selected points [F6]", self)
+        self.reset_selected_points_action.setShortcut("F6")
+        self.reset_selected_points_action.action_id = 6
+        toolbar.addAction(self.reset_selected_points_action)
+
+        toolbar.addSeparator()
+
+        self.delete_selected_points_action = QAction("&Delete selected points [F7]", self)
+        self.delete_selected_points_action.setShortcut("F7")
+        self.delete_selected_points_action.action_id = 7
+        toolbar.addAction(self.delete_selected_points_action)
+
+        toolbar.addSeparator()
+
         self.label = QLabel("Distance between points: ")
         toolbar.addWidget(self.label)
 
@@ -103,14 +117,9 @@ class MyWindow(QMainWindow):
         self.export_json_data_pvi = QAction("&3. Export JSON data", self)
         self.export_json_data_pvi.triggered.connect(self.export_json_data_pvi_event)
 
-        self.reset_selected_points_pvi = QAction("&4. Reset selected points", self)
-        self.reset_selected_points_pvi.triggered.connect(self.reset_selected_points)
-
         menu.addAction(self.pvi_input_force)
         menu.addAction(self.pvi_define_fixed_points)
         menu.addAction(self.export_json_data_pvi)
-        menu.addSeparator()
-        menu.addAction(self.reset_selected_points_pvi)
 
         return menu
 
@@ -143,6 +152,10 @@ class MyWindow(QMainWindow):
             else:
                 self.canvas.alternate_view(ViewModeEnum.MESH_POINTS.value)
                 self.action_view_points.setChecked(True)
+        elif action.action_id == 6:
+            self.reset_selected_points()
+        elif action.action_id == 7:
+            self.canvas.delete_selected_points()
 
     def clear_all_drawings_event(self):
         self.canvas.clear_draws()

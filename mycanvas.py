@@ -343,6 +343,16 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 if x1 <= px <= x2 and y1 <= py <= y2:
                     item.setSelected(select)
 
+    def delete_selected_points(self):
+        for row in self.matrix_mesh_points:
+            for i in range(len(row)):
+                item = row[i]
+                if type(item) is not Point:
+                    continue
+                if not item.isSelected():
+                    continue
+                row[i] = 0
+
     def reset_selected_points(self):
         for row in self.matrix_mesh_points:
             for item in row:
