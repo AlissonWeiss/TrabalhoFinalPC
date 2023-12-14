@@ -299,22 +299,47 @@ class MyCanvas(QtOpenGL.QGLWidget):
         glDisable(GL_BLEND)
 
     def calculate_mesh_points(self, distance_between_points: int):
+        # Recebe a distância dos pontos inserida pelo usuário
         self.distance_between_points = distance_between_points
+        # Pega o boundbox dos desenhos
+        # Estes valores representam as coordenadas no mundo,
+        # então dessa forma teremos os quatro pontos extremos do retangulo
         x_min, x_max, y_min, y_max = self.m_view.getBoundBox()
 
+        # Com os valores de x e y recuperados, podemos verificar a distância entre o maior x e o menor x,
+        # para termos a distância entre eles.
+        # Com a distância calculada, se dividirmos pela distância entre os pontos,
+        # chegaremos na quantidade de pontos que podem ser inseridos nesse espaço.
+        # O mesmo é válido para o y
         x_qty = int((x_max - x_min) / self.distance_between_points)
         y_qty = int((y_max - y_min) / self.distance_between_points)
 
+        # Após a quantidade de pontos calculados, iniciamos uma matriz com estas dimensões
         self.matrix_mesh_points = np.zeros((y_qty, x_qty), dtype=Point)
 
         for i in range(y_qty):
             for j in range(x_qty):
+                # fazendo loop na quantidade de pontos,
+                # recalculamos a sua posição agregando a distância inserida pelo usuário
+                # com isso teremos a posição de cada ponto (em x e em y)
                 x_pos = x_min + self.distance_between_points * j
                 y_pos = y_min + self.distance_between_points * i
+
+                # Criamos uma entidade Point para facilitar a busca
                 point = Point(x_pos, y_pos)
+
+                # Recuperamos os patches (os patches são as zonas fechadas no desenho)
                 patches = self.m_view.getPatches()
+
+                # Como queremos verificar se o ponto em questão está em
+                # uma zona fechada, vamos percorrer as regiões e checar
+                # se o ponto criado acima (após recalcular sua posição) está na região
                 for patch in patches:
+                    # Método do Hetool para verificar se o ponto está dentro do patch em questão
                     if CompGeom.isPointInPolygon(patch.getPoints(), point):
+                        # Se o ponto estiver dentro da região, inserimos ele na matriz criada durante este método
+                        # e, se encontrou nesse patch, não há necessidade de
+                        # continuar correndo todos os outros, por isso o break
                         self.matrix_mesh_points[i][j] = point
                         break
 
