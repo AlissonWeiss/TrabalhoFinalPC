@@ -70,6 +70,7 @@ def main(_file_name):
 
     # Escolha de uma partícula específica para acompanhar durante a simulação
     particle_to_follow = choose_particle_to_follow(forces=forces, restrictions=restrictions, choice="with_force")
+    # particle_to_follow = choose_particle_to_follow(forces=forces, restrictions=restrictions, choice="fixed")
     # Loop principal da simulação
     for i in range(N):
         v += a * (0.5 * h)  # Atualização da velocidade
@@ -124,3 +125,6 @@ def main(_file_name):
     # Plotagem das variações de posição da partícula escolhida ao longo do tempo
     plt.plot(x, res)
     plt.show()
+
+if __name__ == '__main__':
+    main("pvi2.json")

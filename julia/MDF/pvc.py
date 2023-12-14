@@ -57,7 +57,7 @@ def save_into_json_file(m_temperatures, rows, columns):
 
 
 if __name__ == '__main__':
-    connections, temperatures, n_rows, n_columns = read_json("pvc3.json")
+    connections, temperatures, n_rows, n_columns = read_json("pvc2.json")
 
     calculated_temperatures = solve_temperatures(connections, temperatures)
 
