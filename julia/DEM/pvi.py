@@ -90,16 +90,26 @@ def main(_file_name):
                 k = connections[j, index]
                 if k == 0:
                     continue
-                xk = coordinates_x[k - 1] + u[2 * k - 2]  # Calcula a posição atual no eixo x da partícula k
-                yk = coordinates_y[k - 1] + u[2 * k - 1]  # Calcula a posição atual no eixo y da partícula k
-                d_x = xj - xk  # Determina a diferença no eixo x entre as partículas j e k
-                d_y = yj - yk  # Determina a diferença no eixo y entre as partículas j e k
-                di = np.sqrt(d_x * d_x + d_y * d_y)  # Calcula a distância entre as partículas j e k
-                d2 = (di - 2 * raio)  # Calcula o quanto as partículas estão se sobrepondo ou afastadas, descontando seus diâmetros
-                dx = d2 * d_x / di  # Ajusta a diferença de posição no eixo x, mantendo a direção da força
-                dy = d2 * d_y / di  # Ajusta a diferença de posição no eixo y, mantendo a direção da força
-                fi[2 * j] += kspr * dx  # Atualiza a força interna no eixo x para a partícula j
-                fi[2 * j + 1] += kspr * dy  # Atualiza a força interna no eixo y para a partícula j
+                # Calcula a posição atual no eixo x da partícula k
+                xk = coordinates_x[k - 1] + u[2 * k - 2]
+                # Calcula a posição atual no eixo y da partícula k
+                yk = coordinates_y[k - 1] + u[2 * k - 1]
+                # Determina a diferença no eixo x entre as partículas j e k
+                d_x = xj - xk
+                # Determina a diferença no eixo y entre as partículas j e k
+                d_y = yj - yk
+                # Calcula a distância entre as partículas j e k
+                di = np.sqrt(d_x * d_x + d_y * d_y)
+                # Calcula o quanto as partículas estão se sobrepondo ou afastadas, descontando seus diâmetros
+                d2 = (di - 2 * raio)
+                # Ajusta a diferença de posição no eixo x, mantendo a direção da força
+                dx = d2 * d_x / di
+                # Ajusta a diferença de posição no eixo y, mantendo a direção da força
+                dy = d2 * d_y / di
+                # Atualiza a força interna no eixo x para a partícula j
+                fi[2 * j] += kspr * dx
+                # Atualiza a força interna no eixo y para a partícula j
+                fi[2 * j + 1] += kspr * dy
 
         # Atualização da aceleração
         a = (forces - fi) / mass
