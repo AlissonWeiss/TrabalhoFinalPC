@@ -276,7 +276,7 @@ class MyCanvas(QtOpenGL.QGLWidget):
                         glColor3f(0.9, 0.9, 0.05)
                     elif item.getXForce() != 0 or item.getYForce() != 0:
                         glColor3f(0.0, 0.0, 1.0)
-                    elif item.getTemperature() != 0:
+                    elif item.getTemperature() is not None:
                         glColor3f(1.0, 0.0, 1.0)
                     else:
                         glColor3f(0.0, 0.9, 0.0)
@@ -363,18 +363,50 @@ class MyCanvas(QtOpenGL.QGLWidget):
                 item.setFixedY(False)
                 item.setXForce(0.0)
                 item.setYForce(0.0)
-                item.setTemperature(0.0)
+                item.setTemperature(None)
 
     def export_pvc_data(self, file_name: str):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
 
+        e_num_rows, e_num_columns = self.get_exact_number_of_rows_and_columns(self.matrix_mesh_points)
+
         file_data = {
             "connect": self.build_connect_through_matrix(num_rows, num_columns),
-            "temperatures": self.build_list_temperature_through_matrix()
+            "temperatures": self.build_list_temperature_through_matrix(),
+            "rows": e_num_rows,
+            "columns": e_num_columns
         }
 
         with open(f"{file_name}.json", "w") as file:
             file.write(json.dumps(file_data, default=json_serial, indent=4))
+
+    def get_exact_number_of_rows_and_columns(self, matrix):
+
+        num_rows, num_columns = matrix.shape
+
+        # Checa as linhas
+        for row in matrix:
+            is_only_0 = True
+            for item in row:
+                if type(item) is Point:
+                    is_only_0 = False
+                    break
+
+            if is_only_0:
+                num_rows -= 1
+
+        # Checa as colunas
+        for i in range(num_columns):
+            is_only_0 = True
+            for row in matrix:
+                item = row[i]
+                if type(item) is Point:
+                    is_only_0 = False
+                    break
+            if is_only_0:
+                num_columns -= 1
+
+        return num_rows, num_columns
 
     def export_pvi_data(self, file_name: str):
         num_rows, num_columns = self.get_number_of_rows_and_columns(self.matrix_mesh_points)
@@ -395,7 +427,8 @@ class MyCanvas(QtOpenGL.QGLWidget):
             for item in row:
                 if type(item) is not Point:
                     continue
-                temperatures.append(item.getTemperature())
+                temperature = item.getTemperature()
+                temperatures.append([1 if temperature is not None else 0, temperature if temperature is not None else 0])
 
         return temperatures
 

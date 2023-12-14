@@ -14,7 +14,7 @@ class Point():
         self.y_fixed = False
         self.x_force = float(0)
         self.y_force = float(0)
-        self.temperature = float(0)
+        self.temperature = None
 
     def setX(self, _x):
         self.x = _x
